@@ -134,7 +134,7 @@ textarea { resize: vertical; min-height: 58px; }
 
 <header>
   <div class="header-left">
-    <img class="header-logo" id="logoImg" alt="Pipal">
+    <div style="font-size:22px;font-weight:900;color:var(--green);letter-spacing:-1px;font-family:Georgia,serif;">pipal<span style="color:#fff;">®</span></div>
     <div class="header-text">
       <div class="title">HGH Jul'2026 — Lead Capture</div>
       <div class="sub">NESCO Exhibition · Blupipal Industries</div>
@@ -863,7 +863,6 @@ function runOCR() {
 document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 document.getElementById('srNum').textContent = pad(currentSr);
 showApiKeyState(!!localStorage.getItem('gemini_api_key'));
-document.getElementById('logoImg').src = 'https://raw.githubusercontent.com/kanan-master/hgh-lead-capture/main/pipal_logo.jpeg';
 buildProductSection();
 renderRecords();
 </script>
