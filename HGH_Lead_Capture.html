@@ -194,11 +194,28 @@ textarea { resize: vertical; min-height: 58px; }
 
 <!-- SCAN CARD -->
 <div class="card" id="scanCard">
-  <div class="card-header"><span>📷</span><h2>Scan Business Card</h2></div>
+  <div class="card-header"><span>📷</span><h2>Business Card</h2></div>
   <div class="card-body">
+
+    <!-- Always-visible upload section -->
+    <div>
+      <label class="field-label" style="margin-bottom:8px;">Upload Business Card Image</label>
+      <button onclick="document.getElementById('cardUploadInput').click()" id="uploadBtn" style="width:100%;background:#F4FAE8;color:var(--green-dark);border:1.5px solid var(--border);border-radius:12px;padding:13px;font-size:14px;font-weight:800;cursor:pointer;">
+        🖼️ Upload Card Photo
+      </button>
+      <input type="file" id="cardUploadInput" accept="image/*" style="display:none;" onchange="uploadCardImage(event)">
+      <div id="uploadPreview" style="display:none;margin-top:10px;">
+        <img id="uploadedCardImg" style="width:100%;border-radius:10px;border:1.5px solid var(--border);max-height:160px;object-fit:contain;" alt="Card">
+        <div id="uploadStatus" style="font-size:12px;color:var(--muted);text-align:center;margin-top:6px;"></div>
+      </div>
+    </div>
+
+    <div style="height:1px;background:var(--border);margin:16px 0;"></div>
+
+    <!-- Gemini auto-fill (optional) -->
     <div id="apiKeySection">
       <div class="field">
-        <label class="field-label">Gemini API Key <span style="color:var(--muted);font-size:10px;font-weight:400;text-transform:none">(saved on this device only)</span></label>
+        <label class="field-label">Auto-fill from Card (optional) <span style="color:var(--muted);font-size:10px;font-weight:400;text-transform:none">— Gemini API key, saved on this device only</span></label>
         <div style="display:flex;gap:8px;">
           <input type="password" id="apiKeyInput" placeholder="Paste your Gemini API key here" autocomplete="off" style="flex:1;">
           <button onclick="saveApiKey()" style="background:var(--green);color:#fff;border:none;border-radius:9px;padding:0 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Save</button>
@@ -211,24 +228,13 @@ textarea { resize: vertical; min-height: 58px; }
         <div style="font-size:12px;color:var(--muted);">API key saved ✓ <span id="changeKeyBtn" onclick="changeApiKey()" style="color:var(--green);cursor:pointer;text-decoration:underline;margin-left:6px;">Change</span></div>
       </div>
       <button onclick="startScan()" id="scanBtn" style="width:100%;background:var(--charcoal);color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-        📷 Scan Business Card
+        📷 Scan & Auto-fill Details
       </button>
       <div id="scanPreview" style="display:none;margin-top:12px;">
         <img id="cardImage" style="width:100%;border-radius:10px;border:1.5px solid var(--border);max-height:200px;object-fit:contain;" alt="Card preview">
         <button onclick="runOCR()" id="extractBtn" style="width:100%;margin-top:10px;background:var(--green);color:#fff;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:800;cursor:pointer;">✨ Extract Details</button>
       </div>
       <div id="scanStatus" style="font-size:13px;color:var(--muted);text-align:center;margin-top:8px;min-height:20px;"></div>
-      <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px;">
-        <label class="field-label" style="margin-bottom:8px;">Upload Business Card Image</label>
-        <button onclick="document.getElementById('cardUploadInput').click()" id="uploadBtn" style="width:100%;background:#F4FAE8;color:var(--green-dark);border:1.5px solid var(--border);border-radius:12px;padding:13px;font-size:14px;font-weight:800;cursor:pointer;">
-          🖼️ Upload Card Photo
-        </button>
-        <input type="file" id="cardUploadInput" accept="image/*" style="display:none;" onchange="uploadCardImage(event)">
-        <div id="uploadPreview" style="display:none;margin-top:10px;">
-          <img id="uploadedCardImg" style="width:100%;border-radius:10px;border:1.5px solid var(--border);max-height:160px;object-fit:contain;" alt="Card">
-          <div id="uploadStatus" style="font-size:12px;color:var(--muted);text-align:center;margin-top:6px;"></div>
-        </div>
-      </div>
     </div>
     <input type="file" id="cardFileInput" accept="image/*" capture="environment" style="display:none;" onchange="handleCardImage(event)">
   </div>
