@@ -137,7 +137,7 @@ textarea { resize: vertical; min-height: 58px; }
     <div style="font-size:22px;font-weight:900;color:var(--green);letter-spacing:-1px;font-family:Georgia,serif;">pipal<span style="color:#fff;">®</span></div>
     <div class="header-text">
       <div class="title">HGH Jul'2026 — Lead Capture</div>
-      <div class="sub">NESCO Exhibition · Blupipal Industries</div>
+      <div class="sub">NESCO Exhibition · Pipal Products</div>
     </div>
   </div>
   <div class="sr-box">
@@ -338,13 +338,6 @@ textarea { resize: vertical; min-height: 58px; }
   <button class="btn btn-save" onclick="saveEntry()">✅ Save Lead</button>
 </div>
 
-<div id="recordsSection" style="display:none;margin-top:22px;">
-  <div class="records-header">
-    <span class="records-title">Saved Leads</span>
-    <span class="badge" id="recordCount">0</span>
-  </div>
-  <div id="recordsList"></div>
-</div>
 </div>
 
 <!-- OVERLAY (single, reused) -->
@@ -426,6 +419,15 @@ var records = JSON.parse(localStorage.getItem('hgh_leads') || '[]');
 var currentSr = records.length + 1;
 
 function pad(n) { return String(n).padStart(3,'0'); }
+
+function generateLeadCode() {
+  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no confusing 0/O/1/I
+  var code = '';
+  for (var i = 0; i < 3; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
 
 // BUILD PRODUCT SECTION
 function buildProductSection() {
@@ -615,6 +617,7 @@ function collectData() {
   var attendedBy = Array.from(document.querySelectorAll('#staffGrid .staff-btn.selected')).map(function(b) { return b.textContent; });
   return {
     sr: pad(currentSr),
+    leadCode: generateLeadCode(),
     date: new Date().toLocaleDateString('en-IN'),
     name: document.getElementById('visitorName').value.trim(),
     company: document.getElementById('company').value.trim(),
@@ -643,7 +646,7 @@ function saveEntry() {
   localStorage.setItem('hgh_leads', JSON.stringify(records));
   syncToSheet(data);
   currentSr++;
-  showToast('Lead #' + data.sr + ' saved — syncing to sheet...');
+  showToast('Lead ' + data.leadCode + ' saved — syncing...');
   renderRecords();
   resetForm();
 }
@@ -663,17 +666,8 @@ function resetForm() {
 }
 
 function renderRecords() {
-  var list = document.getElementById('recordsList');
-  var section = document.getElementById('recordsSection');
-  var count = document.getElementById('recordCount');
-  if (!records.length) { section.style.display = 'none'; return; }
-  section.style.display = 'block';
-  count.textContent = records.length;
-  list.innerHTML = records.slice().reverse().map(function(r) {
-    var prods = r.products ? r.products.split(' | ') : [];
-    var prodStr = prods.slice(0,3).join(', ') + (prods.length > 3 ? ' +' + (prods.length-3) + ' more' : '');
-    return '<div class="record-card"><div class="rec-head"><div class="rec-name">' + (r.name||'—') + (r.company ? ' <span style="font-weight:400;font-size:12px;color:var(--muted)">· ' + r.company + '</span>' : '') + '</div><div class="rec-num">#' + r.sr + '</div></div><div class="rec-detail">' + (r.mobile?'📞 '+r.mobile+' ':'') + (r.cityState?'📍 '+r.cityState:'') + '</div>' + (r.tradeChannels?'<div class="rec-detail">🏪 '+r.tradeChannels+'</div>':'') + (r.products?'<div class="rec-products">📦 '+prodStr+'</div>':'') + (r.attendedBy?'<div class="rec-detail">👤 '+r.attendedBy+'</div>':'') + '</div>';
-  }).join('');
+  // Records list intentionally not displayed to employees for data privacy.
+  // Data still persists in localStorage and syncs to the private Google Sheet.
 }
 
 var uploadedCardImageUrl = '';
@@ -698,22 +692,27 @@ function uploadCardImage(event) {
 
     fetch(SHEET_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ type: 'image', imageData: base64, mimeType: mimeType, fileName: fileName })
     })
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
+    .then(function(res) { return res.text(); })
+    .then(function(text) {
       document.getElementById('uploadBtn').textContent = '🖼️ Upload Card Photo';
       document.getElementById('uploadBtn').disabled = false;
-      if (data.status === 'success') {
-        window.uploadedCardImageUrl = data.url;
-        document.getElementById('uploadStatus').textContent = '✅ Card saved to Drive — will attach to lead';
-        showToast('Card image uploaded!');
-      } else {
-        document.getElementById('uploadStatus').textContent = 'Upload failed — lead will save without image';
+      try {
+        var data = JSON.parse(text);
+        if (data.status === 'success') {
+          window.uploadedCardImageUrl = data.url;
+          document.getElementById('uploadStatus').textContent = '✅ Card saved to Drive — will attach to lead';
+          showToast('Card image uploaded!');
+        } else {
+          document.getElementById('uploadStatus').textContent = 'Upload failed — ' + (data.message || 'unknown error');
+        }
+      } catch(e) {
+        document.getElementById('uploadStatus').textContent = 'Upload failed — unexpected response';
       }
     })
-    .catch(function() {
+    .catch(function(err) {
       document.getElementById('uploadBtn').textContent = '🖼️ Upload Card Photo';
       document.getElementById('uploadBtn').disabled = false;
       document.getElementById('uploadStatus').textContent = 'Upload failed — check internet connection';
@@ -723,13 +722,12 @@ function uploadCardImage(event) {
   event.target.value = '';
 }
 
-var SHEET_URL = 'https://script.google.com/macros/s/AKfycbwK0d9TJzW4dYXVqj8SYYZTZzYDgFYDNeY9p6pN2YjgE_bpDr05iCIpXBx9ftVebjc3xg/exec';
+var SHEET_URL = 'https://script.google.com/macros/s/AKfycby4GjAMZ-UzV1D5LnCclSE4K5Nj4ATNcOnzE-LkzN3Y-8vM5T5oIRukWNv_g83BxbJsUQ/exec';
 
 function syncToSheet(data) {
   fetch(SHEET_URL, {
     method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(data)
   }).catch(function(err) { console.log('Sync error:', err); });
 }
